@@ -29,3 +29,31 @@ func TestTheEdgesOfTheRangeAreLevels(t *testing.T) {
 		}
 	}
 }
+
+// TestEveryEntryPointAnswersForADisplayThatIsNotThere.
+//
+// It uses an id no machine has, on purpose: this test runs on darwin too, where
+// Dim on a REAL display would turn somebody's screen off in the middle of a
+// test run. What it pins is that every entry point answers rather than
+// panicking, and that Dim hands back no restore when there was nothing to
+// change.
+func TestEveryEntryPointAnswersForADisplayThatIsNotThere(t *testing.T) {
+	const noSuchDisplay = ^uint32(0)
+
+	if _, err := Of(noSuchDisplay); err == nil {
+		t.Error("a display that does not exist reported a brightness")
+	}
+	restore, err := Dim(noSuchDisplay)
+	if err == nil {
+		t.Error("a display that does not exist was dimmed")
+	}
+	if restore != nil {
+		t.Error("Dim handed back a way home for something it never changed")
+	}
+	// And the error says which of the two things went wrong, whichever
+	// platform this is.
+	if !errors.Is(err, ErrUnsupported) && !errors.Is(err, ErrNoBrightness) &&
+		!errors.Is(err, ErrUnavailable) {
+		t.Errorf("Dim = %v, want one of this package's errors", err)
+	}
+}
