@@ -80,7 +80,10 @@ func Set(display uint32, level float64) error {
 // it.
 //
 // A display that will not say what its brightness is, is not dimmed: there
-// would be nothing to restore.
+// would be nothing to restore -- and the read is also the only VALIDATION
+// there is. DisplayServicesSetBrightness answers success for a display id no
+// machine has, so a Dim that set first would report having darkened something
+// that does not exist.
 func Dim(display uint32) (restore func() error, err error) {
 	was, err := Of(display)
 	if err != nil {
