@@ -50,6 +50,16 @@ var (
 	ErrRange = errors.New("brightness: a level must be between 0 and 1")
 )
 
+// The one seam this package has ABOVE the platform boundary. Dim is portable
+// code -- read, set, hand back the way home -- but off darwin the read can only
+// ever fail, so without a seam here most of Dim is unreachable on the very
+// platforms where a test can run it deterministically. Tests replace these;
+// nothing else does.
+var (
+	get = platformGet
+	set = platformSet
+)
+
 // Off is a dark panel, and Full is a bright one.
 const (
 	Off  = 0.0

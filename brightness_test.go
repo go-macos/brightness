@@ -57,3 +57,53 @@ func TestEveryEntryPointAnswersForADisplayThatIsNotThere(t *testing.T) {
 		t.Errorf("Dim = %v, want one of this package's errors", err)
 	}
 }
+
+// swap installs a fake backlight for the duration of one test and puts the
+// real seams back afterwards.
+func swap(t *testing.T, g func(uint32) (float64, error), s func(uint32, float64) error) {
+	t.Helper()
+	oldGet, oldSet := get, set
+	get, set = g, s
+	t.Cleanup(func() { get, set = oldGet, oldSet })
+}
+
+func TestDimGoesBackToExactlyWhatItFound(t *testing.T) {
+	const display = 1
+	panel := 0.43
+	swap(t,
+		func(uint32) (float64, error) { return panel, nil },
+		func(_ uint32, level float64) error { panel = level; return nil },
+	)
+
+	restore, err := Dim(display)
+	if err != nil {
+		t.Fatalf("Dim: %v", err)
+	}
+	if panel != Off {
+		t.Errorf("after Dim the panel is at %v, want %v", panel, Off)
+	}
+	if err := restore(); err != nil {
+		t.Fatalf("restore: %v", err)
+	}
+	if panel != 0.43 {
+		t.Errorf("restored to %v, want the 0.43 it found", panel)
+	}
+}
+
+func TestDimReportsAPanelThatWillNotBeTurnedDown(t *testing.T) {
+	stuck := errors.New("the panel refused")
+	swap(t,
+		func(uint32) (float64, error) { return 0.5, nil },
+		func(uint32, float64) error { return stuck },
+	)
+
+	restore, err := Dim(1)
+	if !errors.Is(err, stuck) {
+		t.Errorf("Dim = %v, want the refusal from the panel", err)
+	}
+	if restore != nil {
+		// The negative control for the test above: a way home is only
+		// handed back when there is something to go home from.
+		t.Error("Dim handed back a way home after changing nothing")
+	}
+}
