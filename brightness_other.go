@@ -8,5 +8,5 @@ package brightness
 
 // The seams answer that they cannot, rather than being absent: a consumer that
 // cross-compiles gets the same API and one clean error from it.
-func get(uint32) (float64, error) { return 0, ErrUnsupported }
-func set(uint32, float64) error   { return ErrUnsupported }
+func platformGet(uint32) (float64, error) { return 0, ErrUnsupported }
+func platformSet(uint32, float64) error   { return ErrUnsupported }

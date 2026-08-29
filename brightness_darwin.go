@@ -53,7 +53,7 @@ func load() error {
 	return loadErr
 }
 
-func get(display uint32) (float64, error) {
+func platformGet(display uint32) (float64, error) {
 	if err := load(); err != nil {
 		return 0, err
 	}
@@ -67,7 +67,7 @@ func get(display uint32) (float64, error) {
 	return float64(v), nil
 }
 
-func set(display uint32, level float64) error {
+func platformSet(display uint32, level float64) error {
 	if err := load(); err != nil {
 		return err
 	}
